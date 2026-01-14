@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>멸종위기 동물 집 찾아주기 (드래그 앤 드롭)</title>
+  <style>
+    :root{
+      --bg:#f6f8fa;
+      --card:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --good:#16a34a;
+      --bad:#ef4444;
+      --shadow:0 10px 22px rgba(0,0,0,.07);
+      --r:18px;
+    }
+    body{
+      font-family:"Noto Sans KR", system-ui, sans-serif;
+      background:var(--bg);
+      padding:18px;
+      color:var(--ink);
+      max-width:1100px;
+      margin:0 auto;
+      overscroll-behavior:none;
+    }
+    h1{ text-align:center; margin:8px 0 6px; font-size:26px; }
+    .sub{ text-align:center; margin:0 0 14px; color:var(--muted); line-height:1.35; }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      padding:12px 14px;
+      box-shadow:var(--shadow);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .pill{
+      background:#111827;
+      color:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:14px;
+    }
+    .btn{
+      border:1px solid #d1d5db;
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:14px;
+    }
+    .btn:hover{ background:#f3f4f6; }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap:12px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size:16px;
+      color:var(--muted);
+      font-weight:1000;
+      text-align:center;
+    }
+
+    /* 동물 카드 영역 */
+    .animals{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap:12px;
+    }
+    .animal{
+      border:2px solid #d1d5db;
+      border-radius:18px;
+      background:#fff;
+      box-shadow:0 6px 14px rgba(0,0,0,.05);
+      padding:12px 10px;
+      text-align:center;
+      user-select:none;
+      touch-action:none; /* ✅ 모바일 드래그 안정 */
+      cursor:grab;
+      position:relative;
+    }
+    .animal:active{ cursor:grabbing; }
+
+    /* ✅ 이제 실루엣 필터 없음 = 원래 이미지(이모지) 그대로 */
+    .animal .emoji{
+      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+      font-size:54px;
+      line-height:1;
+      display:block;
+      margin-bottom:8px;
+      filter:none;
+    }
+    .animal .name{
+      font-size:18px;
+      font-weight:1000;
+    }
+    .animal.matched{
+      border-color: var(--good);
+      background:#f0fdf4;
+      cursor:default;
+      opacity:.98;
+    }
+
+    /* 드래그 중(부유) */
+    .dragging{
+      position:fixed !important;
+      z-index:9999;
+      pointer-events:none;
+      transform: translate(-50%, -50%);
+      width: 170px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.25);
+      border-color: rgba(37,99,235,.65);
+    }
+
+    /* 집(서식지) 영역 */
+    .habitats{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    .hab{
+      border:2px dashed #cbd5e1;
+      border-radius:18px;
+      background:#fff;
+      padding:12px;
+      min-height: 150px;
+      box-shadow:0 6px 14px rgba(0,0,0,.05);
+      position:relative;
+      overflow:hidden;
+    }
+    .habHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .habTitle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:1000;
+      font-size:18px;
+    }
+    .habTitle .icon{
+      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+      font-size:30px;
+      line-height:1;
+    }
+    .habHint{
+      color:var(--muted);
+      font-weight:900;
+      font-size:13px;
+    }
+
+    .dropArea{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      min-height: 96px;
+      padding: 6px;
+      border-radius: 14px;
+      background:#f9fafb;
+      border:1px solid var(--line);
+    }
+
+    .hab.active{
+      border-color: rgba(37,99,235,.85);
+      background: #eef2ff;
+    }
+    .hab.good{
+      border-color: rgba(22,163,74,.9);
+      background:#f0fdf4;
+    }
+    .hab.bad{
+      border-color: rgba(239,68,68,.9);
+      background:#fef2f2;
+    }
+
+    /* 집 안에 들어간 “작은 동물 뱃지” */
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius: 999px;
+      padding:8px 10px;
+      font-weight:1000;
+    }
+    .badge .bemoji{
+      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+      font-size:26px;
+      line-height:1;
+    }
+
+    .msg{
+      margin-top:12px;
+      min-height: 26px;
+      text-align:center;
+      font-weight:1000;
+      font-size:18px;
+    }
+    .ok{ color:var(--good); }
+    .no{ color:var(--bad); }
+
+    /* 흔들림(오답 튕김 느낌) */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+    .shake { animation: shake .25s ease-in-out 2; }
+
+    /* 결과 모달 */
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modal{
+      background:#fff;
+      border-radius:18px;
+      max-width:520px;
+      width:100%;
+      padding:18px;
+      box-shadow:0 18px 40px rgba(0,0,0,.25);
+      border:1px solid var(--line);
+      text-align:center;
+    }
+    .modal h2{ margin:0 0 8px; font-size:24px; }
+    .modal p{ margin:0 0 14px; color:#374151; font-weight:900; line-height:1.5; }
+    .badge2{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
+      border:1px solid var(--line);
+      font-weight:900;
+      margin:4px;
+    }
+
+    @media (max-width: 900px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🏠 멸종위기 동물 집 찾아주기</h1>
+  <p class="sub">동물 카드를 끌어서 <b>숲🌳 / 바다🌊 / 얼음❄️</b> 집에 넣어주세요!<br>맞으면 들어가고, 틀리면 튕겨 나와요 🙂</p>
+
+  <div class="panel">
+    <div class="pill">완료: <span id="doneTxt">0</span> / <span id="totalTxt">5</span></div>
+    <div class="pill">시도: <span id="triesTxt">0</span></div>
+    <div>
+      <button class="btn" id="resetBtn">다시 하기</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="card">
+      <h2>동물(원래 그림)</h2>
+      <div class="animals" id="animals"></div>
+      <div class="msg" id="message"></div>
+    </section>
+
+    <section class="card">
+      <h2>집(서식지)</h2>
+      <div class="habitats">
+        <div class="hab" id="hab-forest" data-hab="forest">
+          <div class="habHeader">
+            <div class="habTitle"><span class="icon">🌳</span> 숲</div>
+            <div class="habHint">나무가 많은 곳</div>
+          </div>
+          <div class="dropArea" id="drop-forest"></div>
+        </div>
+
+        <div class="hab" id="hab-sea" data-hab="sea">
+          <div class="habHeader">
+            <div class="habTitle"><span class="icon">🌊</span> 바다</div>
+            <div class="habHint">물에서 사는 곳</div>
+          </div>
+          <div class="dropArea" id="drop-sea"></div>
+        </div>
+
+        <div class="hab" id="hab-ice" data-hab="ice">
+          <div class="habHeader">
+            <div class="habTitle"><span class="icon">❄️</span> 얼음</div>
+            <div class="habHint">추운 곳</div>
+          </div>
+          <div class="dropArea" id="drop-ice"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="backdrop" id="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h2>🎉 성공!</h2>
+      <p id="resultText"></p>
+      <button class="btn" id="againBtn" style="background:#111827;color:#fff;border-color:#111827;">한 번 더</button>
+      <button class="btn" id="closeBtn">닫기</button>
+    </div>
+  </div>
+
+<script>
+  const ANIMALS = [
+    { key:"panda",   name:"판다",     emoji:"🐼", habitat:"forest" },
+    { key:"elephant",name:"코끼리",   emoji:"🐘", habitat:"forest" },
+    { key:"turtle",  name:"바다거북", emoji:"🐢", habitat:"sea" },
+    { key:"tiger",   name:"호랑이",   emoji:"🐯", habitat:"forest" },
+    { key:"penguin", name:"펭귄",     emoji:"🐧", habitat:"ice" },
+  ];
+
+  const animalsEl = document.getElementById("animals");
+  const msgEl = document.getElementById("message");
+  const doneTxt = document.getElementById("doneTxt");
+  const totalTxt = document.getElementById("totalTxt");
+  const triesTxt = document.getElementById("triesTxt");
+  const resetBtn = document.getElementById("resetBtn");
+
+  const habEls = Array.from(document.querySelectorAll(".hab"));
+  const dropForest = document.getElementById("drop-forest");
+  const dropSea = document.getElementById("drop-sea");
+  const dropIce = document.getElementById("drop-ice");
+
+  const backdrop = document.getElementById("backdrop");
+  const resultText = document.getElementById("resultText");
+  const againBtn = document.getElementById("againBtn");
+  const closeBtn = document.getElementById("closeBtn");
+
+  let tries = 0;
+  let done = 0;
+  let drag = null; // {animal, sourceEl, ghostEl, pointerId, startRect}
+  const placed = new Set();
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function toast(text, ok=null){
+    msgEl.textContent = text;
+    msgEl.className = "msg" + (ok===true ? " ok" : ok===false ? " no" : "");
+  }
+
+  function updateStats(){
+    triesTxt.textContent = tries;
+    doneTxt.textContent = done;
+    totalTxt.textContent = ANIMALS.length;
+  }
+
+  function openModal(){
+    backdrop.style.display = "flex";
+    backdrop.setAttribute("aria-hidden","false");
+  }
+  function closeModal(){
+    backdrop.style.display = "none";
+    backdrop.setAttribute("aria-hidden","true");
+  }
+
+  function makeAnimalCard(a){
+    const btn = document.createElement("div");
+    btn.className = "animal";
+    btn.dataset.key = a.key;
+    btn.dataset.habitat = a.habitat;
+
+    btn.innerHTML = `
+      <span class="emoji" aria-hidden="true">${a.emoji}</span>
+      <div class="name">${a.name}</div>
+    `;
+
+    btn.addEventListener("pointerdown", (e) => onPointerDown(e, a, btn));
+    return btn;
+  }
+
+  function render(){
+    animalsEl.innerHTML = "";
+    const shuffled = shuffle(ANIMALS);
+    shuffled.forEach(a => animalsEl.appendChild(makeAnimalCard(a)));
+
+    dropForest.innerHTML = "";
+    dropSea.innerHTML = "";
+    dropIce.innerHTML = "";
+
+    tries = 0;
+    done = 0;
+    placed.clear();
+    updateStats();
+    toast("동물을 끌어서 집에 넣어주세요 🙂");
+  }
+
+  function onPointerDown(e, animal, sourceEl){
+    if(placed.has(animal.key)) return;
+    if(drag) return;
+
+    sourceEl.setPointerCapture(e.pointerId);
+
+    const ghost = sourceEl.cloneNode(true);
+    ghost.classList.add("dragging");
+    ghost.style.left = e.clientX + "px";
+    ghost.style.top  = e.clientY + "px";
+    document.body.appendChild(ghost);
+
+    sourceEl.style.opacity = ".35";
+
+    drag = {
+      animal,
+      sourceEl,
+      ghostEl: ghost,
+      pointerId: e.pointerId,
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive:false });
+    window.addEventListener("pointerup", onPointerUp, { passive:false });
+    window.addEventListener("pointercancel", onPointerUp, { passive:false });
+  }
+
+  function onPointerMove(e){
+    if(!drag || e.pointerId !== drag.pointerId) return;
+    e.preventDefault();
+
+    drag.ghostEl.style.left = e.clientX + "px";
+    drag.ghostEl.style.top  = e.clientY + "px";
+
+    const hitHab = hitTestHabitat(e.clientX, e.clientY);
+    habEls.forEach(h => h.classList.remove("active"));
+    if(hitHab) hitHab.classList.add("active");
+  }
+
+  function hitTestHabitat(x, y){
+    for(const hab of habEls){
+      const r = hab.getBoundingClientRect();
+      if(x >= r.left && x <= r.right && y >= r.top && y <= r.bottom){
+        return hab;
+      }
+    }
+    return null;
+  }
+
+  function onPointerUp(e){
+    if(!drag || e.pointerId !== drag.pointerId) return;
+    e.preventDefault();
+
+    habEls.forEach(h => h.classList.remove("active"));
+
+    const targetHab = hitTestHabitat(e.clientX, e.clientY);
+    const correctHab = drag.animal.habitat;
+
+    tries++;
+    updateStats();
+
+    if(targetHab && targetHab.dataset.hab === correctHab){
+      const drop = document.getElementById("drop-" + correctHab);
+
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.innerHTML = `<span class="bemoji">${drag.animal.emoji}</span><span>${drag.animal.name}</span>`;
+      drop.appendChild(badge);
+
+      placed.add(drag.animal.key);
+      done++;
+      updateStats();
+
+      drag.sourceEl.classList.add("matched");
+      drag.sourceEl.style.opacity = "1";
+
+      toast("✅ 맞아요! 집에 들어갔어요!", true);
+      flashHab(targetHab, true);
+
+      cleanupDrag();
+
+      if(done === ANIMALS.length){
+        resultText.innerHTML =
+          `<span class="badge2">✅ 모두 성공: ${done} / ${ANIMALS.length}</span>` +
+          `<span class="badge2">🧠 시도: ${tries}번</span><br><br>` +
+          `멸종위기 동물의 집을 잘 찾아줬어요 🌍`;
+        openModal();
+      }
+    } else {
+      toast("❌ 아직 아니에요! 다시 해볼까요?", false);
+      if(targetHab) flashHab(targetHab, false);
+      bounceBack();
+    }
+  }
+
+  function flashHab(habEl, ok){
+    habEl.classList.remove("good","bad");
+    habEl.classList.add(ok ? "good" : "bad");
+    setTimeout(() => habEl.classList.remove("good","bad"), 450);
+  }
+
+  function bounceBack(){
+    drag.ghostEl.classList.add("shake");
+    setTimeout(() => {
+      drag.sourceEl.style.opacity = "1";
+      cleanupDrag();
+    }, 420);
+  }
+
+  function cleanupDrag(){
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    window.removeEventListener("pointercancel", onPointerUp);
+
+    if(drag?.ghostEl && drag.ghostEl.parentNode){
+      drag.ghostEl.parentNode.removeChild(drag.ghostEl);
+    }
+    drag = null;
+  }
+
+  resetBtn.addEventListener("click", () => { closeModal(); render(); });
+  againBtn.addEventListener("click", () => { closeModal(); render(); });
+  closeBtn.addEventListener("click", closeModal);
+  backdrop.addEventListener("click", (e) => { if(e.target === backdrop) closeModal(); });
+
+  render();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+

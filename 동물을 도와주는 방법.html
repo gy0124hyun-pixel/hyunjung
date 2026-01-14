@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>We can help! 행동 고르기 게임</title>
+  <style>
+    :root{
+      --bg:#f6f8fa;
+      --card:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --good:#16a34a;
+      --bad:#ef4444;
+      --shadow:0 10px 22px rgba(0,0,0,.07);
+      --r:18px;
+    }
+    body{
+      font-family:"Noto Sans KR", system-ui, sans-serif;
+      background:var(--bg);
+      padding:18px;
+      color:var(--ink);
+      max-width:920px;
+      margin:0 auto;
+    }
+    h1{ text-align:center; margin:8px 0 6px; font-size:26px; }
+    .sub{ text-align:center; margin:0 0 14px; color:var(--muted); line-height:1.35; }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      padding:12px 14px;
+      box-shadow:var(--shadow);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .pill{
+      background:#111827;
+      color:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:14px;
+    }
+    .btn{
+      border:1px solid #d1d5db;
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:14px;
+    }
+    .btn:hover{ background:#f3f4f6; }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+
+    .bigFace{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:14px;
+      margin: 8px 0 10px;
+      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+    }
+    #animalEmoji{ font-size: 92px; line-height:1; }
+    #happyEmoji{ font-size: 78px; line-height:1; }
+
+    #qTitle{
+      text-align:center;
+      font-size:22px;
+      font-weight:1000;
+      margin:0 0 8px;
+    }
+    #teacherLine{
+      text-align:center;
+      color:#374151;
+      font-weight:900;
+      background:#f9fafb;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+      margin: 0 0 12px;
+      line-height:1.4;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:12px;
+      margin-top: 8px;
+    }
+    .choice{
+      border:2px solid #d1d5db;
+      border-radius:18px;
+      padding:14px 10px;
+      background:#fff;
+      cursor:pointer;
+      user-select:none;
+      text-align:center;
+      font-weight:1000;
+      transition:.15s;
+      box-shadow:0 6px 14px rgba(0,0,0,.05);
+      font-size:18px;
+      min-height: 70px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1.2;
+    }
+    .choice:hover{ background:#eef2ff; border-color:#a5b4fc; }
+    .choice.correct{ border-color: var(--good); background:#f0fdf4; }
+    .choice.wrong{ border-color: var(--bad); background:#fef2f2; }
+
+    #explain{
+      margin-top:12px;
+      display:none;
+      background:#ecfdf5;
+      border:1px solid #bbf7d0;
+      border-radius:16px;
+      padding:12px;
+      font-weight:1000;
+      line-height:1.45;
+      color:#064e3b;
+      text-align:center;
+    }
+
+    .msg{
+      min-height: 26px;
+      margin-top: 10px;
+      text-align:center;
+      font-weight:1000;
+      font-size:18px;
+    }
+    .ok{ color:var(--good); }
+    .no{ color:var(--bad); }
+
+    .row{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
+
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modal{
+      background:#fff;
+      border-radius:18px;
+      max-width:520px;
+      width:100%;
+      padding:18px;
+      box-shadow:0 18px 40px rgba(0,0,0,.25);
+      border:1px solid var(--line);
+      text-align:center;
+    }
+    .modal h2{ margin:0 0 8px; font-size:24px; }
+    .modal p{ margin:0 0 14px; color:#374151; font-weight:900; line-height:1.5; }
+    .badge{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
+      border:1px solid var(--line);
+      font-weight:900;
+      margin:4px;
+    }
+
+    @media (max-width: 720px){
+      .grid{ grid-template-columns: 1fr; }
+      #animalEmoji{ font-size: 86px; }
+      #happyEmoji{ font-size: 72px; }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🌱 We can help!</h1>
+  <p class="sub">동물이 웃을 수 있게, 우리가 할 수 있는 행동을 골라요 🙂</p>
+
+  <div class="panel">
+    <div class="pill">문제 <span id="qNow">1</span> / <span id="qTotal">5</span></div>
+    <div class="pill">점수 <span id="scoreTxt">0</span>점</div>
+    <div>
+      <button class="btn" id="sayBtn">선생님 멘트 🔊</button>
+      <button class="btn" id="resetBtn">다시 하기</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="bigFace">
+      <span id="animalEmoji" aria-label="동물">🐢</span>
+      <span id="happyEmoji" aria-label="행복">😊</span>
+    </div>
+
+    <div id="qTitle">이 동물을 도와줄 수 있는 행동은 무엇일까요?</div>
+    <div id="teacherLine">“우리의 작은 행동이 동물에게 큰 도움이 돼요!”</div>
+
+    <div class="grid" id="choices"></div>
+
+    <div class="msg" id="message"></div>
+    <div id="explain"></div>
+
+    <div class="row">
+      <button class="btn" id="nextBtn" disabled>다음 ▶</button>
+    </div>
+  </div>
+
+  <div class="backdrop" id="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h2>🎉 끝!</h2>
+      <p id="resultText"></p>
+      <div class="row">
+        <button class="btn" id="againBtn" style="background:#111827;color:#fff;border-color:#111827;">한 번 더</button>
+        <button class="btn" id="closeBtn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ✅ 행동 고르기(유아용): 정답 1개 + 오답 2개
+  // 오답은 "동물을 괴롭히기"처럼 폭력적 표현 대신, 유아용으로 "동물을 괴롭혀요" 정도로 완화.
+  const QUESTIONS = [
+    {
+      animal: "바다거북", emoji: "🐢",
+      correct: "플라스틱을 줄여요.",
+      wrongs: ["바다에 쓰레기를 버려요.", "동물을 괴롭혀요."],
+      explain: "바다거북은 플라스틱을 먹이로 착각할 수 있어요. 쓰레기를 줄이면 안전해져요!"
+    },
+    {
+      animal: "펭귄", emoji: "🐧",
+      correct: "전기를 아껴요.",
+      wrongs: ["불을 켜 둬요.", "얼음을 일부러 녹여요."],
+      explain: "전기를 아끼면 지구가 덜 더워져요. 얼음이 지켜지면 펭귄도 좋아해요!"
+    },
+    {
+      animal: "판다", emoji: "🐼",
+      correct: "종이를 아껴 써요.",
+      wrongs: ["종이를 많이 버려요.", "나무를 마구 꺾어요."],
+      explain: "종이를 아끼면 나무를 지킬 수 있어요. 숲이 지켜지면 판다도 살기 좋아요!"
+    },
+    {
+      animal: "호랑이", emoji: "🐯",
+      correct: "자연을 깨끗하게 지켜요.",
+      wrongs: ["숲에 쓰레기를 버려요.", "나무를 함부로 꺾어요."],
+      explain: "숲이 깨끗하고 안전해야 호랑이가 숨고 살 수 있어요."
+    },
+    {
+      animal: "코끼리", emoji: "🐘",
+      correct: "물과 전기를 아껴요.",
+      wrongs: ["물을 틀어놓고 놀아요.", "불을 계속 켜둬요."],
+      explain: "자원을 아끼면 자연이 덜 망가져요. 코끼리도 살 곳을 지킬 수 있어요!"
+    }
+  ];
+
+  let order = [];
+  let idx = 0;
+  let score = 0;
+  let answered = false;
+
+  const qNow = document.getElementById("qNow");
+  const qTotal = document.getElementById("qTotal");
+  const scoreTxt = document.getElementById("scoreTxt");
+  const animalEmoji = document.getElementById("animalEmoji");
+  const choicesDiv = document.getElementById("choices");
+  const message = document.getElementById("message");
+  const explainBox = document.getElementById("explain");
+  const nextBtn = document.getElementById("nextBtn");
+
+  const sayBtn = document.getElementById("sayBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  const backdrop = document.getElementById("backdrop");
+  const resultText = document.getElementById("resultText");
+  const againBtn = document.getElementById("againBtn");
+  const closeBtn = document.getElementById("closeBtn");
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function toast(text, ok=null){
+    message.textContent = text;
+    message.className = "msg" + (ok===true ? " ok" : ok===false ? " no" : "");
+  }
+
+  function speak(text){
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ko-KR";
+      u.rate = 0.95;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function buildOptions(q){
+    return shuffle([q.correct, ...q.wrongs]);
+  }
+
+  function renderQuestion(){
+    const q = order[idx];
+
+    qNow.textContent = idx + 1;
+    qTotal.textContent = order.length;
+
+    animalEmoji.textContent = q.emoji;
+    animalEmoji.setAttribute("aria-label", q.animal);
+
+    const options = buildOptions(q);
+    choicesDiv.innerHTML = "";
+    options.forEach(text => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice";
+      btn.textContent = text;
+      btn.addEventListener("click", () => choose(text, btn));
+      choicesDiv.appendChild(btn);
+    });
+
+    answered = false;
+    nextBtn.disabled = true;
+    explainBox.style.display = "none";
+    explainBox.textContent = "";
+    toast("어떤 행동이 좋을까요? 🙂", null);
+  }
+
+  function choose(text, btn){
+    if(answered) return;
+    answered = true;
+
+    const q = order[idx];
+    const isCorrect = (text === q.correct);
+
+    const all = Array.from(document.querySelectorAll(".choice"));
+    all.forEach(b => b.style.pointerEvents = "none");
+
+    if(isCorrect){
+      score += 10;
+      scoreTxt.textContent = score;
+      btn.classList.add("correct");
+      toast("✅ 좋아요! 이 행동이 동물을 도와줘요!", true);
+      speak("좋아요!");
+    }else{
+      btn.classList.add("wrong");
+      toast("❌ 이건 동물을 도와주지 못해요. 정답을 볼까요?", false);
+      speak("정답을 볼까요?");
+      const correctBtn = all.find(b => b.textContent === q.correct);
+      if(correctBtn) correctBtn.classList.add("correct");
+    }
+
+    explainBox.textContent = "설명: " + q.explain;
+    explainBox.style.display = "block";
+    nextBtn.disabled = false;
+  }
+
+  function next(){
+    if(idx < order.length - 1){
+      idx++;
+      renderQuestion();
+    }else{
+      showResult();
+    }
+  }
+
+  function showResult(){
+    const correctCount = score / 10;
+    resultText.innerHTML =
+      `<span class="badge">✅ 맞힌 개수 ${correctCount} / ${order.length}</span>` +
+      `<span class="badge">🏆 점수 ${score}점</span><br><br>` +
+      `우리의 행동이 동물을 지켜요 🌍💚<br>오늘 한 가지 약속을 정해볼까요?`;
+    backdrop.style.display = "flex";
+    backdrop.setAttribute("aria-hidden","false");
+  }
+
+  function closeModal(){
+    backdrop.style.display = "none";
+    backdrop.setAttribute("aria-hidden","true");
+  }
+
+  function startGame(){
+    closeModal();
+    order = shuffle(QUESTIONS);
+    idx = 0;
+    score = 0;
+    scoreTxt.textContent = score;
+    renderQuestion();
+  }
+
+  nextBtn.addEventListener("click", next);
+
+  sayBtn.addEventListener("click", () => {
+    const q = order[idx];
+    speak(`이 동물을 도와줄 수 있는 행동은 무엇일까요? ${q.animal}이에요. 어떤 행동이 좋을까요?`);
+  });
+
+  resetBtn.addEventListener("click", startGame);
+  againBtn.addEventListener("click", startGame);
+  closeBtn.addEventListener("click", closeModal);
+  backdrop.addEventListener("click", (e) => { if(e.target === backdrop) closeModal(); });
+
+  window.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" && !nextBtn.disabled) next();
+    if(e.key.toLowerCase() === "r") startGame();
+    if(e.key === "Escape") closeModal();
+  });
+
+  startGame();
+</script>
+</body>
+</html>

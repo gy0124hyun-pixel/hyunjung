@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멸종위기 동물들</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFB347;
+            /* Pastel Orange */
+            --secondary-color: #FFD1DC;
+            /* Pastel Pink */
+            --accent-color: #AEC6CF;
+            /* Pastel Blue */
+            --bg-color: #FDFCF0;
+            --text-color: #5D4037;
+            --card-bg: #FFFFFF;
+            --hover-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            background-image: radial-gradient(#FFD1DC 15%, transparent 16%), radial-gradient(#AEC6CF 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        h1 {
+            font-family: 'Gaegu', cursive;
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            color: #FF6F61;
+            text-shadow: 3px 3px 0px #FFF, 5px 5px 0px rgba(0, 0, 0, 0.1);
+            animation: bounce 2s infinite;
+            text-align: center;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            width: 90%;
+            max-width: 1200px;
+            padding: 2rem;
+        }
+
+        .menu-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 2rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+            position: relative;
+            border: 4px solid transparent;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: var(--hover-shadow);
+            border-color: var(--primary-color);
+        }
+
+        .menu-card .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .menu-card:hover .icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .menu-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-card p {
+            font-size: 1rem;
+            color: #888;
+            font-family: 'Gaegu', cursive;
+        }
+
+        /* Card Specific Colors */
+        .card-1 {
+            border-bottom: 8px solid #FFAB91;
+        }
+
+        .card-1:hover .icon {
+            color: #FFAB91;
+        }
+
+        .card-2 {
+            border-bottom: 8px solid #80CBC4;
+        }
+
+        .card-2:hover .icon {
+            color: #80CBC4;
+        }
+
+        .card-3 {
+            border-bottom: 8px solid #9FA8DA;
+        }
+
+        .card-3:hover .icon {
+            color: #9FA8DA;
+        }
+
+        .card-4 {
+            border-bottom: 8px solid #CE93D8;
+        }
+
+        .card-4:hover .icon {
+            color: #CE93D8;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div
+        style="position: absolute; top: 20px; left: 25px; font-family: 'Jua', sans-serif; font-size: 1.5rem; color: #5D4037;">
+        현정유치원
+    </div>
+
+    <h1>🐾 멸종위기 동물들 🐾</h1>
+
+    <div class="menu-grid">
+        <a href="동물 실루엣 맞주기.html" class="menu-card card-1">
+            <span class="icon">🦒</span>
+            <h2>실루엣 퀴즈</h2>
+            <p>이 그림자는 누구일까요?</p>
+        </a>
+
+        <a href="동물 집 찾기 게임.html" class="menu-card card-2">
+            <span class="icon">🏠</span>
+            <h2>동물 집 찾기</h2>
+            <p>친구들의 집을 찾아주세요!</p>
+        </a>
+
+        <a href="동물이 슬픈 이유.html" class="menu-card card-3">
+            <span class="icon">💧</span>
+            <h2>왜 슬플까요?</h2>
+            <p>동물 친구의 마음을 알아봐요.</p>
+        </a>
+
+        <a href="동물을 도와주는 방법.html" class="menu-card card-4">
+            <span class="icon">🤝</span>
+            <h2>도와주세요</h2>
+            <p>우리가 할 수 있는 일은?</p>
+        </a>
+    </div>
+
+</body>
+
+</html>
